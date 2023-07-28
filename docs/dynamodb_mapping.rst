@@ -12,14 +12,6 @@ dynamodb\_mapping.dynamodb\_mapping module
    :undoc-members:
    :show-inheritance:
 
-dynamodb\_mapping.utils module
-------------------------------
-
-.. automodule:: dynamodb_mapping.utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 

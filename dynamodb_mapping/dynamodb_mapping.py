@@ -11,8 +11,6 @@ import logging
 import boto3
 from boto3.dynamodb.types import Binary
 
-from .utils import boto3_session_from_config
-
 try:
     import mypy_boto3_dynamodb
     DynamoDBTable = mypy_boto3_dynamodb.service_resource.Table
@@ -58,6 +56,17 @@ DynamoDBItemType = Mapping[str, DynamoDBValue]
 """DynamoDB item type."""
 
 logger = logging.getLogger(__name__)
+
+def _boto3_session_from_config(config: Dict[str, Any]) -> Optional[boto3.Session]:
+    if "aws_access_key_id" in config and "aws_secret_access_key" in config:
+        return boto3.Session(
+            aws_access_key_id=config["aws_access_key_id"],
+            aws_secret_access_key=config["aws_secret_access_key"],
+            region_name=config.get("aws_region"),
+            profile_name=config.get("aws_profile")
+        )
+    else:
+        return None
 
 def get_key_names(table: DynamoDBTable) -> DynamoDBKeyName:
     """Gets the key names of the DynamoDB table.
@@ -234,8 +243,8 @@ class DynamoDBMapping(MutableMapping):
     successive pages of the scan operation are queried only on demand. Examples of such operations
     include scan, iteration over keys, iteration over values, and iteration over items (key-value
     tuples). You should pay particular attention to certain patterns that fetch all items in the
-    table, for example, calling list(mapping.values()). This call will execute an exhaustive scan on
-    your table, which can be costly, and attempt to load all items into memory, which can be
+    table, for example, calling ``list(mapping.values())``. This call will execute an exhaustive
+    scan on your table, which can be costly, and attempt to load all items into memory, which can be
     resource-demanding if your table is particularly large.
 
     The ``__len__`` implementation of this class returns a best-effort estimate of the number of
@@ -257,7 +266,7 @@ class DynamoDBMapping(MutableMapping):
         session = (
             boto3_session or
             kwargs.get("boto3_session") or
-            boto3_session_from_config(kwargs) or
+            _boto3_session_from_config(kwargs) or
             boto3.Session()
         )
         dynamodb = session.resource("dynamodb")
