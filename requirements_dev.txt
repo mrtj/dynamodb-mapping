@@ -11,5 +11,10 @@ twine~=4.0.2
 pytest~=7.4.0
 black~=23.7.0
 
+# Stubs
 types-setuptools~=68.0.0.3
 boto3-stubs[dynamodb]
+mypy-boto3-dynamodb
+
+# Sphinx theme
+sphinx-rtd-theme

@@ -67,7 +67,7 @@ def get_key_names(table: DynamoDBTable) -> DynamoDBKeyName:
 
     Returns:
         DynamoDBKeyName: A tuple with either one (if only the partition key is defined on the table)
-            or two (if both the partition and range key is defined) elements.
+        or two (if both the partition and range key is defined) elements.
     """
     schema: Dict[str, str] = {s["KeyType"]: s["AttributeName"] for s in table.key_schema}
     return (schema["HASH"], schema["RANGE"]) if "RANGE" in schema else (schema["HASH"], )
@@ -204,31 +204,31 @@ class DynamoDBMapping(MutableMapping):
     You have the following options to configure the underlying boto3 session:
 
     - Automatic configuration: pass nothing to DynamoDBMapping initializer. This will prompt
-    DynamoDBMapping to load the default `Session` object, which in turn will use the standard boto3
-    credentials chain to find AWS credentials (e.g., the ~/.aws/credentials file, environment
-    variables, etc.).
-    - Pass a preconfigured boto3 `Session` object
-    - Pass `aws_access_key_id` and `aws_secret_access_key` as keyword arguments. Additionally,
-    the optional `aws_region` and `aws_profile` arguments are also considered.
+      DynamoDBMapping to load the default ``boto3.Session`` object, which in turn will use the
+      standard boto3 credentials chain to find AWS credentials (e.g., the ``~/.aws/credentials``
+      file, environment variables, etc.).
+    - Pass a preconfigured ``boto3.Session`` object
+    - Pass ``aws_access_key_id`` and ``aws_secret_access_key`` as keyword arguments. Additionally,
+      the optional ``aws_region`` and ``aws_profile`` arguments are also considered.
 
-    Example:
-    ```python
-    from dynamodb_mapping import DynamoDBMapping
-    mapping = DynamoDBMapping(table_name="my_table")
+    Example::
 
-    # Iterate over all items:
-    for key, value in mapping.items():
-        print(key, value)
+        from dynamodb_mapping import DynamoDBMapping
+        mapping = DynamoDBMapping(table_name="my_table")
 
-    # Get a single item:
-    print(mapping["my_key"])
+        # Iterate over all items:
+        for key, value in mapping.items():
+            print(key, value)
 
-    # Create or modify an item:
-    mapping["my_key"] = {"description": "foo", "price": 123}
+        # Get a single item:
+        print(mapping["my_key"])
 
-    # Delete an item:
-    del mapping["my_key"]
-    ```
+        # Create or modify an item:
+        mapping["my_key"] = {"description": "foo", "price": 123}
+
+        # Delete an item:
+        del mapping["my_key"]
+
 
     All methods that iterate over the elements of the table do so in a lazy manner, in that the
     successive pages of the scan operation are queried only on demand. Examples of such operations
@@ -238,17 +238,17 @@ class DynamoDBMapping(MutableMapping):
     your table, which can be costly, and attempt to load all items into memory, which can be
     resource-demanding if your table is particularly large.
 
-    The `__len__` implementation of this class returns a best-effort estimate of the number of
+    The ``__len__`` implementation of this class returns a best-effort estimate of the number of
     items in the table using the TableDescription DynamoDB API. The number of items are updated
     at DynamoDB service side approximately once in every 6 hours. If you need the exact number of
-    items currently in the table, you can use `len(list(mapping.keys()))`. Note however that this
+    items currently in the table, you can use ``len(list(mapping.keys()))``. Note however that this
     will cause to run an exhaustive scan operation on your table.
 
     Args:
         table_name (str): The name of the DynamoDB table.
         boto3_session (Optional[boto3.Session]): An optional preconfigured boto3 Session object.
         **kwargs: Additional keyword parameters for manual configuration of the boto3 client:
-            `aws_access_key_id`, `aws_secret_access_key`, `aws_region`, `aws_profile`.
+            ``aws_access_key_id``, ``aws_secret_access_key``, ``aws_region``, ``aws_profile``.
     """
 
     def __init__(
@@ -275,8 +275,13 @@ class DynamoDBMapping(MutableMapping):
         """Performs a scan operation on the DynamoDB table. The scan is executed in a lazy manner,
         in that the successive pages are queried only on demand.
 
+        Example::
+
+            for item in mapping.scan():
+                print(item)
+
         Args:
-            **kwargs: keyword arguments to be passed to the underlying DynamoDB scan operation.
+            **kwargs: keyword arguments to be passed to the underlying DynamoDB ``scan`` operation.
 
         Returns:
             Iterator[DynamoDBItemType]: An iterator over all items in the table.
@@ -295,11 +300,16 @@ class DynamoDBMapping(MutableMapping):
 
         The value(s) of the item's key(s) should be specified.
 
+        Example::
+
+            print(mapping.get_item("my_key"))
+
         Args:
             keys (DynamoDBKeySimplified): The key value. This can either be a simple Python type,
                 if only the partition key is specified in the table's key schema, or a tuple of the
                 partition key and the range key values, if both are specified in the key schema.
-            **kwargs: keyword arguments to be passed to the underlying DynamoDB get_item operation.
+            **kwargs: keyword arguments to be passed to the underlying DynamoDB ``get_item``
+                operation.
 
         Raises:
             ValueError: If the required key values are not specified.
@@ -317,14 +327,19 @@ class DynamoDBMapping(MutableMapping):
         return DynamoDBItemAccessor(parent=self, item_keys=keys, initial_data=data)
 
     def set_item(self, keys: DynamoDBKeySimplified, item: DynamoDBItemType, **kwargs) -> None:
-        """Creates or overwrites a single item in the table.
+        """Create or overwrite a single item in the table.
+
+        Example::
+
+            mapping.set_item("my_key", {"name": "my first object", "data": {"foo": "bar"}})
 
         Args:
             keys (DynamoDBKeySimplified): The key value. This can either be a simple Python type,
                 if only the partition key is specified in the table's key schema, or a tuple of the
                 partition key and the range key values, if both are specified in the key schema.
             item (DynamoDBItemType): The new item.
-            **kwargs: keyword arguments to be passed to the underlying DynamoDB set_item operation.
+            **kwargs: keyword arguments to be passed to the underlying DynamoDB ``set_item``
+                operation.
 
         """
         key_params = self._create_key_param(keys)
@@ -333,11 +348,15 @@ class DynamoDBMapping(MutableMapping):
         self.table.put_item(Item=_item, **kwargs)
 
     def put_item(self, keys: DynamoDBKeySimplified, item: DynamoDBItemType, **kwargs) -> None:
-        """An alias for the `set_item` method."""
+        """An alias for the ``set_item`` method."""
         self.set_item(keys, item, **kwargs)
 
     def del_item(self, keys: DynamoDBKeySimplified, check_existing=True, **kwargs) -> None:
-        """Deletes a single item from the table.
+        """Delete a single item from the table.
+
+        Example::
+
+            mapping.del_item("my_key")
 
         Args:
             keys (DynamoDBKeySimplified): The key value. This can either be a simple Python type,
@@ -346,7 +365,7 @@ class DynamoDBMapping(MutableMapping):
             check_existing (bool): Raise ValueError if the specified key does not exists in the
                 table. Defaults to True to be consistent with python dict implementation, however
                 this causes an additional get_item operation to be executed.
-            **kwargs: keyword arguments to be passed to the underlying DynamoDB delete_item
+            **kwargs: keyword arguments to be passed to the underlying DynamoDB ``delete_item``
                 operation.
         """
         key_params = self._create_key_param(keys)
@@ -360,7 +379,11 @@ class DynamoDBMapping(MutableMapping):
         modifications: DynamoDBItemType,
         **kwargs
     ) -> None:
-        """Modifies the properties of an existing item.
+        """Modify the properties of an existing item.
+
+        Example::
+
+            mapping.modify_item("my_key", {"title": "new_title"})
 
         Args:
             keys (DynamoDBKeySimplified): The key value of the item. This can either be a simple
@@ -371,7 +394,7 @@ class DynamoDBMapping(MutableMapping):
                 the fields of the item. This mapping follows the same format as the entire item,
                 but it isn't required to contain all fields: fields that are omitted will be
                 unaffected. To delete a field, set the field value to None.
-            **kwargs: keyword arguments to be passed to the underlying DynamoDB update_item
+            **kwargs: keyword arguments to be passed to the underlying DynamoDB ``update_item``
                 operation.
         """
         key_params = self._create_key_param(keys)
@@ -421,7 +444,13 @@ class DynamoDBMapping(MutableMapping):
     def __iter__(self) -> Iterator:
         """Returns an iterator over the table.
 
-        This method performs a lazy DynamoDB `scan` operation.
+        This method performs a lazy DynamoDB ``scan`` operation.
+
+        Example::
+
+            for item in mapping:
+                print(item)
+
         """
         for item in self.scan(ProjectionExpression=", ".join(self.key_names)):
             yield simplify_tuple_keys(self._key_values_from_item(item))
@@ -430,28 +459,49 @@ class DynamoDBMapping(MutableMapping):
         """Returns a best effort estimation of the number of items in the table.
 
         If you need the precise number of items in the table, you can use
-        `len(list(mapping.keys()))`. However this later can be a costly operation.
+        ``len(list(mapping.keys()))``. However this later can be a costly operation.
+
+        Example::
+
+            print(len(mapping))
+
         """
         return self.table.item_count
 
     def __getitem__(self, __key: Any) -> Any:
         """Retrieves a single item from the table.
 
-        Delegates the call to `get_item` method without additional keyword arguments.
+        Delegates the call to ``get_item`` method without additional keyword arguments.
+
+        Example::
+
+            print(mapping["my_key"])
+            mapping["my_key"]["info"] = "You can directly add or modify item attributes!"
+
         """
         return self.get_item(__key)
 
     def __setitem__(self, __key: Any, __value: Any) -> None:
         """Creates or overwrites a single item in the table.
 
-        Delegates the call to `set_item` method without additional keyword arguments.
+        Delegates the call to ``set_item`` method without additional keyword arguments.
+
+        Example::
+
+            mapping["my_key"] = {"name": "my first object", "data": {"foo": "bar"}}
+
         """
         self.set_item(__key, __value)
 
     def __delitem__(self, __key: Any) -> None:
         """Deletes a single item from the table.
 
-        Delegates the call to `del_item` method without additional keyword arguments.
+        Delegates the call to ``del_item`` method without additional keyword arguments.
+
+        Example::
+
+            del mapping["my_key"]
+
         """
         self.del_item(__key)
 
@@ -459,6 +509,11 @@ class DynamoDBMapping(MutableMapping):
         """Returns an efficient implementation of the ItemsView on this table.
 
         The returned view can be used to iterate over (key, value) tuples in the table.
+
+        Example::
+
+            for key, item in mapping.items():
+                print(key, item)
 
         Returns:
             ItemsView: The items view.
@@ -470,6 +525,11 @@ class DynamoDBMapping(MutableMapping):
 
         The returned view can be used to iterate over the values in the table.
 
+        Example::
+
+            for item in mapping.values():
+                print(item)
+
         Returns:
             ValuesView: The values view.
         """
@@ -479,6 +539,11 @@ class DynamoDBMapping(MutableMapping):
         """Returns an efficient implementation of the KeysView on this table.
 
         The returned view can be used to iterate over the keys in the table.
+
+        Example::
+
+            for key in mapping.keys():
+                print(key)
 
         Returns:
             KeysView: The keys view.
