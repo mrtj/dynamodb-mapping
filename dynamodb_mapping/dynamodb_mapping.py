@@ -4,8 +4,8 @@ dictionary."""
 from __future__ import annotations
 
 from typing import (
-    Iterator, KeysView, Tuple, Union, Any, Optional, Iterable, Dict, Set, List, Mapping, Sequence,
-    cast, TypeAlias
+    Iterator, Tuple, Union, Any, Optional, Iterable, Dict, Set, List, Mapping, Sequence,
+    cast
 )
 from collections.abc import ValuesView, ItemsView, KeysView, MutableMapping
 from decimal import Decimal
@@ -23,23 +23,23 @@ except ImportError:
 DynamoDBKeyPrimitiveTypes = (str, bytes, bytearray, int, Decimal)
 """DynamoDB primary key primitive choices."""
 
-DynamoDBKeyPrimitive: TypeAlias = Union[str, bytes, bytearray, int, Decimal]
+DynamoDBKeyPrimitive = Union[str, bytes, bytearray, int, Decimal]
 """DynamoDB primary key primitive."""
 
-DynamoDBKeySimple: TypeAlias = Tuple[DynamoDBKeyPrimitive]
+DynamoDBKeySimple = Tuple[DynamoDBKeyPrimitive]
 """DynamoDB simple primary key type (a partition key only)."""
 
-DynamoDBKeyComposite: TypeAlias = Tuple[DynamoDBKeyPrimitive, DynamoDBKeyPrimitive]
+DynamoDBKeyComposite = Tuple[DynamoDBKeyPrimitive, DynamoDBKeyPrimitive]
 """DynamoDB composite primary key type (a partition key and a sort key)."""
 
-DynamoDBKeyAny: TypeAlias = Union[DynamoDBKeySimple, DynamoDBKeyComposite]
+DynamoDBKeyAny = Union[DynamoDBKeySimple, DynamoDBKeyComposite]
 """Any DynamoDB primary key type."""
 
-DynamoDBKeySimplified: TypeAlias = Union[DynamoDBKeyPrimitive, DynamoDBKeyComposite]
+DynamoDBKeySimplified = Union[DynamoDBKeyPrimitive, DynamoDBKeyComposite]
 """A simplified DynamoDB key type: a primitive in case of simple primary key,
 and a tuple in the case of composite key."""
 
-DynamoDBKeyName: TypeAlias = Union[Tuple[str], Tuple[str, str]]
+DynamoDBKeyName = Union[Tuple[str], Tuple[str, str]]
 """DynamoDB primary key name type"""
 
 DynamoDBValueTypes = (
@@ -48,14 +48,14 @@ DynamoDBValueTypes = (
 )
 """DynamoDB value type choices."""
 
-DynamoDBValue: TypeAlias = Union[
+DynamoDBValue = Union[
     bytes, bytearray, str, int, Decimal,bool,
     Set[int], Set[Decimal], Set[str], Set[bytes], Set[bytearray],
     Sequence[Any], Mapping[str, Any], None,
 ]
 """DynamoDB value type."""
 
-DynamoDBItemType: TypeAlias = Mapping[str, DynamoDBValue]
+DynamoDBItemType = Mapping[str, DynamoDBValue]
 """DynamoDB item type."""
 
 logger = logging.getLogger(__name__)
@@ -322,14 +322,22 @@ class DynamoDBMapping(MutableMapping):
             for item in response["Items"]:
                 yield item
 
-    def get_item(self, keys: DynamoDBKeySimplified, **kwargs) -> DynamoDBItemType:
+    def get_item(self, keys: DynamoDBKeySimplified, **kwargs) -> DynamoDBItemAccessor:
         """Retrieves a single item from the table.
 
         The value(s) of the item's key(s) should be specified.
 
+        This method returns a dictionary wrapper over a single item from the table. You can access
+        the attributes of the item as if it was a common Python dictionary (i.e. with the ``[]``
+        operators), but the wrapper also allows you to modify directly the single attribute values
+        of the item, as shown in the example.
+
         Example::
 
-            print(mapping.get_item("my_key"))
+            my_item = mapping.get_item("my_key")
+            print(my_item)
+            my_item["title"] = "FooBar"
+
 
         Args:
             keys: The key value. This can either be a simple Python type,
@@ -343,7 +351,7 @@ class DynamoDBMapping(MutableMapping):
             KeyError: If no item can be found under this key in the table.
 
         Returns:
-            A single item from the table.
+            A dictionary wrapper over a single item from the table.
         """
         key_params = self._create_key_param(keys)
         logger.debug("Performing a get_item operation on %s table", self.table.name)

@@ -5,4 +5,3 @@ API Documentation
    :members:
    :undoc-members:
    :show-inheritance:
-   :special-members: DynamoDBKeySimplified, DynamoDBItemType
