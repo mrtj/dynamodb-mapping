@@ -272,6 +272,9 @@ class DynamoDBMapping(MutableMapping):
     the values are one of the `permitted DynamoDB value types`_. The ``DynamoDBItemType`` type
     reflects the possible item types.
 
+    .. warning::
+        As of the time of the writing, the support of composite keys is untested and might not work.
+
     .. _permitted DynamoDB value types: \
         https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/dynamodb.html
 
