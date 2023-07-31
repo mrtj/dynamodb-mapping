@@ -1,7 +1,8 @@
-dynamodb_mapping
-================
+API Documentation
+=================
 
-.. toctree::
-   :maxdepth: 4
-
-   dynamodb_mapping
+.. automodule:: dynamodb_mapping
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :special-members: DynamoDBKeySimplified, DynamoDBItemType

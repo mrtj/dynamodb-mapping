@@ -179,3 +179,8 @@ intersphinx_mapping = {
     'boto3': ('https://boto3.amazonaws.com/v1/documentation/api/latest/', None),
     'botocore': ('https://botocore.readthedocs.io/en/latest/', None),
 }
+
+autodoc_type_aliases = {
+    'DynamoDBItemType': 'DynamoDBItemType',
+    'DynamoDBKeySimplified': 'DynamoDBKeySimplified',
+}
