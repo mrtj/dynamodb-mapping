@@ -5,8 +5,9 @@
 import pytest
 
 
-from dynamodb_mapping import dynamodb_mapping
+# from dynamodb_mapping import DynamoDBMapping
 
+# mapping = DynamoDBMapping("foobar")
 
 @pytest.fixture
 def response():

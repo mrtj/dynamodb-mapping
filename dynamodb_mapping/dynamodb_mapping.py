@@ -18,7 +18,7 @@ try:
     import mypy_boto3_dynamodb
     DynamoDBTable = mypy_boto3_dynamodb.service_resource.Table
 except ImportError:
-    DynamoDBTable = Any # type: ignore
+    DynamoDBTable = Any  # type: ignore
 
 DynamoDBKeyPrimitiveTypes = (str, bytes, bytearray, int, Decimal)
 """DynamoDB primary key primitive choices."""
@@ -49,7 +49,7 @@ DynamoDBValueTypes = (
 """DynamoDB value type choices."""
 
 DynamoDBValue = Union[
-    bytes, bytearray, str, int, Decimal,bool,
+    bytes, bytearray, str, int, Decimal, bool,
     Set[int], Set[Decimal], Set[str], Set[bytes], Set[bytearray],
     Sequence[Any], Mapping[str, Any], None,
 ]
@@ -59,6 +59,7 @@ DynamoDBItemType = Mapping[str, DynamoDBValue]
 """DynamoDB item type."""
 
 logger = logging.getLogger(__name__)
+
 
 def _boto3_session_from_config(config: Dict[str, Any]) -> Optional[boto3.Session]:
     if "aws_access_key_id" in config and "aws_secret_access_key" in config:
@@ -70,6 +71,7 @@ def _boto3_session_from_config(config: Dict[str, Any]) -> Optional[boto3.Session
         )
     else:
         return None
+
 
 def get_key_names(table: DynamoDBTable) -> DynamoDBKeyName:
     """Gets the key names of the DynamoDB table.
@@ -120,6 +122,7 @@ def create_tuple_keys(key: DynamoDBKeySimplified) -> DynamoDBKeyAny:
         return cast(DynamoDBKeyComposite, tuple(key))
     else:
         return cast(DynamoDBKeySimple, (key,))
+
 
 def _log_keys_from_params(key_params: Dict[str, DynamoDBKeyPrimitive]) -> str:
     log_keys = list(key_params.values())
@@ -194,7 +197,8 @@ class DynamoDBItemAccessor(dict):
         initial_data (Dict): The initial item data.
     """
 
-    def __init__(self,
+    def __init__(
+        self,
         parent: "DynamoDBMapping",
         item_keys: DynamoDBKeySimplified,
         initial_data: DynamoDBItemType,
@@ -268,7 +272,8 @@ class DynamoDBMapping(MutableMapping):
     the values are one of the `permitted DynamoDB value types`_. The ``DynamoDBItemType`` type
     reflects the possible item types.
 
-    .. _permitted DynamoDB value types: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/dynamodb.html
+    .. _permitted DynamoDB value types: \
+        https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/dynamodb.html
 
     Args:
         table_name: The name of the DynamoDB table.
@@ -278,7 +283,7 @@ class DynamoDBMapping(MutableMapping):
     """
 
     def __init__(
-        self, table_name: str, boto3_session: Optional[boto3.session.Session]=None, **kwargs
+        self, table_name: str, boto3_session: Optional[boto3.session.Session] = None, **kwargs
     ) -> None:
         session = (
             boto3_session or
@@ -294,7 +299,7 @@ class DynamoDBMapping(MutableMapping):
         tuple_keys = create_tuple_keys(keys)
         if len(tuple_keys) != len(self.key_names):
             raise ValueError(f"You must provide a value for each of {self.key_names} keys.")
-        param = { name: value for name, value in zip(self.key_names, tuple_keys) }
+        param = {name: value for name, value in zip(self.key_names, tuple_keys)}
         return param
 
     def scan(self, **kwargs) -> Iterator[DynamoDBItemType]:
@@ -356,7 +361,7 @@ class DynamoDBMapping(MutableMapping):
         key_params = self._create_key_param(keys)
         logger.debug("Performing a get_item operation on %s table", self.table.name)
         response = self.table.get_item(Key=key_params, **kwargs)
-        if not "Item" in response:
+        if "Item" not in response:
             raise KeyError(_log_keys_from_params(key_params))
         data = response["Item"]
         return DynamoDBItemAccessor(parent=self, item_keys=keys, initial_data=data)
@@ -404,12 +409,13 @@ class DynamoDBMapping(MutableMapping):
                 :meth:`~DynamoDBTable.delete_item` operation.
         """
         key_params = self._create_key_param(keys)
-        if check_existing and not keys in self.keys():
+        if check_existing and keys not in self.keys():
             raise KeyError(_log_keys_from_params(key_params))
         logger.debug("Performing a delete_item operation on %s table", self.table.name)
         self.table.delete_item(Key=key_params, **kwargs)
 
-    def modify_item(self,
+    def modify_item(
+        self,
         keys: DynamoDBKeySimplified,
         modifications: DynamoDBItemType,
         **kwargs
