@@ -6,6 +6,8 @@ DynamoDB Mapping
 .. image:: https://img.shields.io/pypi/v/dynamodb_mapping.svg
         :target: https://pypi.python.org/pypi/dynamodb_mapping
 
+.. image:: https://codecov.io/gh/mrtj/dynamodb-mapping/branch/main/graph/badge.svg?token=Y44R08UKEG
+        :target: https://codecov.io/gh/mrtj/dynamodb-mapping
 
 .. image:: https://readthedocs.org/projects/dynamodb-mapping/badge/?version=latest
         :target: https://dynamodb-mapping.readthedocs.io/en/latest/?version=latest
