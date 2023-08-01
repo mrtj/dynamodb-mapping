@@ -19,3 +19,6 @@ mypy-boto3-dynamodb
 
 # Sphinx theme
 sphinx-rtd-theme
+
+# Project requirements
+boto3~=1.28.10
