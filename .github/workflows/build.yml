@@ -60,6 +60,7 @@ jobs:
         sudo apt install -y libunwind-dev
         python -m pip install --upgrade pip
         python -m pip install -r requirements_dev.txt
+        python -m pip install .
         python -m pip install sphinx sphinx-rtd-theme m2r2
     - name: Generate documentation with Sphinx
       run: |
