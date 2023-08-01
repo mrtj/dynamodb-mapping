@@ -64,7 +64,3 @@ jobs:
     - name: Generate documentation with Sphinx
       run: |
         make docs
-
-  report:
-    needs: [lint, unittest, docs]
-    runs-on: ubuntu-latest
