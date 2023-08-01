@@ -10,6 +10,7 @@ from typing import (
 from collections.abc import ValuesView, ItemsView, KeysView, MutableMapping
 from decimal import Decimal
 import logging
+import warnings
 
 import boto3
 from boto3.dynamodb.types import Binary
@@ -148,7 +149,7 @@ class DynamoDBValuesView(ValuesView):
         return False
 
     def __iter__(self) -> Iterator:
-        return self._mapping.scan()
+        yield from self._mapping.scan()
 
 
 class DynamoDBItemsView(ItemsView):
@@ -460,9 +461,9 @@ class DynamoDBMapping(MutableMapping):
         if remove_expression_parts:
             update_expression_parts.append("remove " + ", ".join(remove_expression_parts))
         if not update_expression_parts:
-            logger.warning(
-                "No update expression was created by modify_item: modifications mapping is empty?"
-            )
+            warning_msg = "No update expression was created by modify_item: modifications mapping is empty?"
+            warnings.warn(warning_msg, UserWarning)
+            logger.warning(warning_msg)
             return
         update_expression = " ".join(update_expression_parts)
         logger.debug(

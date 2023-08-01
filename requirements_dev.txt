@@ -9,6 +9,7 @@ Sphinx
 twine~=4.0.2
 
 pytest~=7.4.0
+pytest-mock~=3.11.0
 black~=23.7.0
 
 # Stubs
