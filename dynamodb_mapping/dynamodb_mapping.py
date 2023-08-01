@@ -4,8 +4,18 @@ dictionary."""
 from __future__ import annotations
 
 from typing import (
-    Iterator, Tuple, Union, Any, Optional, Iterable, Dict, Set, List, Mapping, Sequence,
-    cast
+    Iterator,
+    Tuple,
+    Union,
+    Any,
+    Optional,
+    Iterable,
+    Dict,
+    Set,
+    List,
+    Mapping,
+    Sequence,
+    cast,
 )
 from collections.abc import ValuesView, ItemsView, KeysView, MutableMapping
 from decimal import Decimal
@@ -17,6 +27,7 @@ from boto3.dynamodb.types import Binary
 
 try:
     import mypy_boto3_dynamodb
+
     DynamoDBTable = mypy_boto3_dynamodb.service_resource.Table
 except ImportError:
     DynamoDBTable = Any  # type: ignore
@@ -44,15 +55,38 @@ DynamoDBKeyName = Union[Tuple[str], Tuple[str, str]]
 """DynamoDB primary key name type"""
 
 DynamoDBValueTypes = (
-    str, int, Decimal, Binary, bytes, bytearray, bool, None,
-    Set[str], Set[int], Set[Decimal], Set[Binary], List, Dict
+    str,
+    int,
+    Decimal,
+    Binary,
+    bytes,
+    bytearray,
+    bool,
+    None,
+    Set[str],
+    Set[int],
+    Set[Decimal],
+    Set[Binary],
+    List,
+    Dict,
 )
 """DynamoDB value type choices."""
 
 DynamoDBValue = Union[
-    bytes, bytearray, str, int, Decimal, bool,
-    Set[int], Set[Decimal], Set[str], Set[bytes], Set[bytearray],
-    Sequence[Any], Mapping[str, Any], None,
+    bytes,
+    bytearray,
+    str,
+    int,
+    Decimal,
+    bool,
+    Set[int],
+    Set[Decimal],
+    Set[str],
+    Set[bytes],
+    Set[bytearray],
+    Sequence[Any],
+    Mapping[str, Any],
+    None,
 ]
 """DynamoDB value type."""
 
@@ -68,7 +102,7 @@ def _boto3_session_from_config(config: Dict[str, Any]) -> Optional[boto3.Session
             aws_access_key_id=config["aws_access_key_id"],
             aws_secret_access_key=config["aws_secret_access_key"],
             region_name=config.get("aws_region"),
-            profile_name=config.get("aws_profile")
+            profile_name=config.get("aws_profile"),
         )
     else:
         return None
@@ -84,8 +118,10 @@ def get_key_names(table: DynamoDBTable) -> DynamoDBKeyName:
         DynamoDBKeyName: A tuple with either one (if only the partition key is defined on the table)
         or two (if both the partition and range key is defined) elements.
     """
-    schema: Dict[str, str] = {s["KeyType"]: s["AttributeName"] for s in table.key_schema}
-    return (schema["HASH"], schema["RANGE"]) if "RANGE" in schema else (schema["HASH"], )
+    schema: Dict[str, str] = {
+        s["KeyType"]: s["AttributeName"] for s in table.key_schema
+    }
+    return (schema["HASH"], schema["RANGE"]) if "RANGE" in schema else (schema["HASH"],)
 
 
 def simplify_tuple_keys(key: DynamoDBKeyAny) -> DynamoDBKeySimplified:
@@ -287,22 +323,29 @@ class DynamoDBMapping(MutableMapping):
     """
 
     def __init__(
-        self, table_name: str, boto3_session: Optional[boto3.session.Session] = None, **kwargs
+        self,
+        table_name: str,
+        boto3_session: Optional[boto3.session.Session] = None,
+        **kwargs,
     ) -> None:
         session = (
-            boto3_session or
-            kwargs.get("boto3_session") or
-            _boto3_session_from_config(kwargs) or
-            boto3.Session()
+            boto3_session
+            or kwargs.get("boto3_session")
+            or _boto3_session_from_config(kwargs)
+            or boto3.Session()
         )
         dynamodb = session.resource("dynamodb")
         self.table = dynamodb.Table(table_name)
         self.key_names = get_key_names(self.table)
 
-    def _create_key_param(self, keys: DynamoDBKeySimplified) -> Dict[str, DynamoDBKeyPrimitive]:
+    def _create_key_param(
+        self, keys: DynamoDBKeySimplified
+    ) -> Dict[str, DynamoDBKeyPrimitive]:
         tuple_keys = create_tuple_keys(keys)
         if len(tuple_keys) != len(self.key_names):
-            raise ValueError(f"You must provide a value for each of {self.key_names} keys.")
+            raise ValueError(
+                f"You must provide a value for each of {self.key_names} keys."
+            )
         param = {name: value for name, value in zip(self.key_names, tuple_keys)}
         return param
 
@@ -370,7 +413,9 @@ class DynamoDBMapping(MutableMapping):
         data = response["Item"]
         return DynamoDBItemAccessor(parent=self, item_keys=keys, initial_data=data)
 
-    def set_item(self, keys: DynamoDBKeySimplified, item: DynamoDBItemType, **kwargs) -> None:
+    def set_item(
+        self, keys: DynamoDBKeySimplified, item: DynamoDBItemType, **kwargs
+    ) -> None:
         """Create or overwrite a single item in the table.
 
         Example::
@@ -391,11 +436,15 @@ class DynamoDBMapping(MutableMapping):
         logger.debug("Performing a put_item operation on %s table", self.table.name)
         self.table.put_item(Item=_item, **kwargs)
 
-    def put_item(self, keys: DynamoDBKeySimplified, item: DynamoDBItemType, **kwargs) -> None:
+    def put_item(
+        self, keys: DynamoDBKeySimplified, item: DynamoDBItemType, **kwargs
+    ) -> None:
         """An alias for the ``set_item`` method."""
         self.set_item(keys, item, **kwargs)
 
-    def del_item(self, keys: DynamoDBKeySimplified, check_existing=True, **kwargs) -> None:
+    def del_item(
+        self, keys: DynamoDBKeySimplified, check_existing=True, **kwargs
+    ) -> None:
         """Delete a single item from the table.
 
         Example::
@@ -419,10 +468,7 @@ class DynamoDBMapping(MutableMapping):
         self.table.delete_item(Key=key_params, **kwargs)
 
     def modify_item(
-        self,
-        keys: DynamoDBKeySimplified,
-        modifications: DynamoDBItemType,
-        **kwargs
+        self, keys: DynamoDBKeySimplified, modifications: DynamoDBItemType, **kwargs
     ) -> None:
         """Modify the properties of an existing item.
 
@@ -459,9 +505,14 @@ class DynamoDBMapping(MutableMapping):
         if set_expression_parts:
             update_expression_parts.append("set " + ", ".join(set_expression_parts))
         if remove_expression_parts:
-            update_expression_parts.append("remove " + ", ".join(remove_expression_parts))
+            update_expression_parts.append(
+                "remove " + ", ".join(remove_expression_parts)
+            )
         if not update_expression_parts:
-            warning_msg = "No update expression was created by modify_item: modifications mapping is empty?"
+            warning_msg = (
+                "No update expression was created by modify_item: "
+                "modifications mapping is empty?"
+            )
             warnings.warn(warning_msg, UserWarning)
             logger.warning(warning_msg)
             return
