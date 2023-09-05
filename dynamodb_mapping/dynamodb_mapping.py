@@ -432,7 +432,11 @@ class DynamoDBMapping(MutableMapping):
 
         """
         key_params = self._create_key_param(keys)
-        _item = dict(**item, **key_params)
+        _item = {}
+        for k, v in item.items():
+            _item[k] = v
+        for k, v in key_params.items():
+            _item[k] = v
         logger.debug("Performing a put_item operation on %s table", self.table.name)
         self.table.put_item(Item=_item, **kwargs)
 
