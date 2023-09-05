@@ -6,5 +6,5 @@ from .dynamodb_mapping import DynamoDBMapping, DynamoDBKeySimplified, DynamoDBIt
 
 __author__ = """Janos Tolgyesi"""
 __email__ = "janos.tolgyesi@gmail.com"
-__version__ = "0.1.1"
+__version__ = "__version__ = "0.1.1""
 __all__ = ["DynamoDBMapping", "DynamoDBKeySimplified", "DynamoDBItemType"]
